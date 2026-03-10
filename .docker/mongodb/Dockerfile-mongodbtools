@@ -1,15 +1,19 @@
 FROM nixyslab/nxs-backup-bin AS bin
 
-FROM debian:11-slim
+FROM debian:trixie-slim
 
 RUN apt update \
-    && apt install -yq \
-      lsb-release \
+    && apt install -yq --no-install-recommends \
       wget \
       gnupg \
-    && wget -O /tmp/mcc.deb https://downloads.mysql.com/archives/get/p/23/file/mysql-community-client_5.7.42-1debian10_amd64.deb \
-    && apt -yq purge wget  && apt -yq autoremove && apt -yq install /tmp/mcc.deb \
-    && rm /tmp/mcc.deb \
+      lsb-release \
+      ca-certificates \
+    && wget -qO - https://www.mongodb.org/static/pgp/server-8.0.asc | gpg --dearmor -o /usr/share/keyrings/mongodb-archive-keyring.gpg \
+    && echo "deb [signed-by=/usr/share/keyrings/mongodb-archive-keyring.gpg] https://repo.mongodb.org/apt/ubuntu noble/mongodb-org/8.0 multiverse" > /etc/apt/sources.list.d/mongodb-org-8.0.list \
+    && apt update \
+    && apt install -yq --no-install-recommends mongodb-database-tools \
+    && apt remove -y wget gnupg lsb-release \
+    && apt autoremove -y \
     && apt clean \
     && rm -rf /var/lib/apt/lists/*
 

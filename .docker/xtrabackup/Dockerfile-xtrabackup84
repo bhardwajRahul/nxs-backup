@@ -1,0 +1,25 @@
+FROM nixyslab/nxs-backup-bin AS bin
+
+FROM debian:trixie-slim
+
+RUN apt update \
+    && apt install -yq --no-install-recommends \
+      lsb-release \
+      wget \
+      gnupg \
+      ca-certificates \
+    && wget -O /tmp/xtrabackup.deb https://repo.percona.com/apt/percona-release_latest.$(lsb_release -sc)_all.deb \
+    && apt install -yq --no-install-recommends /tmp/xtrabackup.deb \
+    && rm /tmp/xtrabackup.deb \
+    && percona-release enable-only tools release \
+    && apt update \
+    && apt install -yq --no-install-recommends percona-xtrabackup-84 \
+    && xtrabackup --version \
+    && apt remove -y wget gnupg lsb-release \
+    && apt autoremove -y \
+    && apt clean \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY --from=bin /nxs-backup /usr/local/bin/nxs-backup
+
+CMD nxs-backup start

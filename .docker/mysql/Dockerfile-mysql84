@@ -1,0 +1,25 @@
+FROM nixyslab/nxs-backup-bin AS bin
+
+FROM debian:trixie-slim
+
+RUN apt update \
+    && apt install -yq --no-install-recommends \
+      wget \
+      lsb-release \
+      gnupg \
+      ca-certificates \
+    && wget -O /tmp/mysql-apt-config.deb https://dev.mysql.com/get/mysql-apt-config_0.8.33-1_all.deb \
+    && apt install -y /tmp/mysql-apt-config.deb \
+    && apt update \
+    && apt install -yq --no-install-recommends \
+      mysql-client \
+    && apt -yq purge wget gnupg lsb-release \
+    && apt -yq autoremove \
+    && apt clean \
+    && rm -rf /tmp/*.deb \
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /etc/apt/sources.list.d/mysql.list
+
+COPY --from=bin /nxs-backup /usr/local/bin/nxs-backup
+
+CMD nxs-backup start

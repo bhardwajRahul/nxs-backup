@@ -1,0 +1,25 @@
+FROM nixyslab/nxs-backup-bin AS bin
+
+FROM debian:trixie-slim
+
+RUN apt update \
+    && apt install -yq --no-install-recommends \
+      wget \
+      gnupg \
+      lsb-release \
+      ca-certificates \
+    && wget -O /tmp/redis.gpg https://packages.redis.io/gpg \
+    && gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg /tmp/redis.gpg \
+    && echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb trixie main" > /etc/apt/sources.list.d/redis.list \
+    && apt update \
+    && apt install -yq --no-install-recommends redis-tools \
+    && redis-cli --version \
+    && apt remove -y wget gnupg lsb-release \
+    && apt autoremove -y \
+    && apt clean \
+    && rm -rf /var/lib/apt/lists/* \
+    && rm -rf /tmp/*.deb /tmp/*.gpg
+
+COPY --from=bin /nxs-backup /usr/local/bin/nxs-backup
+
+CMD nxs-backup start
