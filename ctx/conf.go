@@ -121,6 +121,13 @@ type sourceConnectConf struct {
 	MongoRSAddr     string `conf:"mongo_replica_set_address"`
 	MongoTLSCAFile  string `conf:"mongo_tls_CA_file"`
 	MongoAuthDB     string `conf:"mongo_auth_db"`
+	ClickHouseUseConfig   *bool   `conf:"clickhouse_use_config,omitempty"`
+	ClickHouseConfigPath  *string `conf:"clickhouse_config_path,omitempty"`
+	ClickHouseSecure      *bool   `conf:"clickhouse_secure,omitempty"`
+	ClickHouseSkipVerify  *bool   `conf:"clickhouse_skip_verify,omitempty"`
+	ClickHouseSSLCA       *string `conf:"clickhouse_ssl_ca,omitempty"`
+	ClickHouseSSLCert     *string `conf:"clickhouse_ssl_cert,omitempty"`
+	ClickHouseSSLKey      *string `conf:"clickhouse_ssl_key,omitempty"`
 }
 
 type storageConf struct {
