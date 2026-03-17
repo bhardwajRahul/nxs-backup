@@ -11,7 +11,7 @@ import (
 	"github.com/nixys/nxs-backup/ds/mysql_connect"
 	"github.com/nixys/nxs-backup/ds/psql_connect"
 	"github.com/nixys/nxs-backup/ds/redis_connect"
-	"github.com/nixys/nxs-backup/ds/clickhouse_connect"
+	// "github.com/nixys/nxs-backup/ds/clickhouse_connect"
 	"github.com/nixys/nxs-backup/interfaces"
 	"github.com/nixys/nxs-backup/misc"
 	"github.com/nixys/nxs-backup/modules/backup/desc_files"
@@ -389,10 +389,20 @@ func jobsInit(o jobsOpts) ([]interfaces.Job, error) {
 
 
 		case misc.ClickHouse:
-			var sources []clickhousebackup.SourceParams
+			var sources []clickhouse.SourceParams
 
 			for _, src := range j.Sources {
-				sources = append(sources, clickhousebackup.SourceParams{
+				useConfig := false
+				if src.Connect.ClickHouseUseConfig != nil {
+					useConfig = *src.Connect.ClickHouseUseConfig
+				}
+
+				configPath := ""
+				if src.Connect.ClickHouseConfigPath != nil {
+					configPath = *src.Connect.ClickHouseConfigPath
+				}
+
+				sources = append(sources, clickhouse.SourceParams{
 					Name:          src.Name,
 					Host:          src.Connect.DBHost,
 					Port:          src.Connect.DBPort,
@@ -402,17 +412,15 @@ func jobsInit(o jobsOpts) ([]interfaces.Job, error) {
 					TargetTables:  src.TargetTables,
 					ExcludeTables: src.ExcludeTables,
 					ExtraKeys:     getExtraKeys(src.ExtraKeys),
-					UseConfig:     src.Connect.ClickHouseUseConfig,
-					ConfigPath:    src.Connect.ClickHouseConfigPath,
-					Secure:        src.Connect.ClickHouseSecure,
-					SkipVerify:    src.Connect.ClickHouseSkipVerify,
-					SSLCA:         src.Connect.ClickHouseSSLCA,
-					SSLCert:       src.Connect.ClickHouseSSLCert,
-					SSLKey:        src.Connect.ClickHouseSSLKey,
+					UseConfig:     useConfig,
+					ConfigPath:    configPath,
+					RemoteStorage: "",
+					S3Bucket:      "",
+					S3Path:        "",
 				})
 			}
 
-			job, err = clickhousebackup.Init(clickhousebackup.JobParams{
+			job, err = clickhouse.Init(clickhouse.JobParams{
 				Name:             j.Name,
 				TmpDir:           j.TmpDir,
 				NeedToMakeBackup: needToMakeBackup,
